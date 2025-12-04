@@ -1,0 +1,50 @@
+version: '3.8'
+services:
+  db:
+    image: postgres:15-alpine
+    container_name: walletmind_db
+    restart: always
+    environment:
+      POSTGRES_USER: admin
+      POSTGRES_PASSWORD: supersecretpassword
+      POSTGRES_DB: walletmind
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - walletmind_net
+
+  api:
+    build: .
+    container_name: walletmind_api
+    restart: always
+    depends_on:
+      - db
+    ports:
+      - "3000:3000"
+    environment:
+      DATABASE_URL: postgresql://admin:supersecretpassword@db:5432/walletmind
+      POSTGRES_USER: admin
+      POSTGRES_PASSWORD: supersecretpassword
+      POSTGRES_DB: walletmind
+    volumes:
+      - .:/usr/src/app
+      - /usr/src/app/node_modules
+    networks:
+      - walletmind_net
+
+  adminer:
+    image: adminer
+    container_name: walletmind_adminer
+    restart: always
+    ports:
+      - "8080:8080"
+    networks:
+      - walletmind_net
+
+volumes:
+  postgres_data:
+
+networks:
+  walletmind_net:
